@@ -1,0 +1,62 @@
+﻿name: Deploy Frontend to Production
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  deploy-production:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy to Railway production
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PRODUCTION_TOKEN }}
+        run: railway up --service ${{ secrets.RAILWAY_PRODUCTION_SERVICE }} --detach
+
+      - name: Health check
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 30
+          curl -f ${{ secrets.RAILWAY_PRODUCTION_URL }} || exit 1
+
+      - name: Deployment notification
+        run: |
+          echo "Deployed frontend to production"
+          echo "Production URL: ${{ secrets.RAILWAY_PRODUCTION_URL }}"
+          echo "Deployment #${{ github.run_number }}"
+          echo "Commit: ${{ github.sha }}"
