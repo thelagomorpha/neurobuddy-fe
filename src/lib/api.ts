@@ -1,13 +1,30 @@
-﻿export function normalizeBaseUrl(baseUrl) {
+type HelloData = {
+  message: string;
+  database_connected: boolean;
+  database_message: string;
+  total_messages: number;
+};
+
+export type FetchHelloResult =
+  | {
+      ok: true;
+      data: HelloData;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+export function normalizeBaseUrl(baseUrl?: string): string {
   const fallback = "http://localhost:8000";
   return (baseUrl || fallback).replace(/\/+$/, "");
 }
 
-export function buildHelloEndpoint(baseUrl) {
+export function buildHelloEndpoint(baseUrl?: string): string {
   return `${normalizeBaseUrl(baseUrl)}/api/hello/`;
 }
 
-export async function fetchHelloData(baseUrl) {
+export async function fetchHelloData(baseUrl?: string): Promise<FetchHelloResult> {
   const endpoint = buildHelloEndpoint(baseUrl);
 
   try {
@@ -26,9 +43,9 @@ export async function fetchHelloData(baseUrl) {
       };
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as HelloData;
     return { ok: true, data };
-  } catch (error) {
+  } catch {
     return {
       ok: false,
       error: `Network error when reaching backend at ${endpoint}.`

@@ -1,19 +1,21 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchHelloData } from "@/src/lib/api";
 
 vi.mock("@/src/lib/api", () => ({
   fetchHelloData: vi.fn()
 }));
 
+const fetchHelloDataMock = vi.mocked(fetchHelloData);
+
 describe("HomePage", () => {
   beforeEach(() => {
-    fetchHelloData.mockReset();
+    fetchHelloDataMock.mockReset();
     process.env.BACKEND_API_BASE_URL = "http://example.test";
   });
 
   it("renders backend values when request succeeds", async () => {
-    fetchHelloData.mockResolvedValue({
+    fetchHelloDataMock.mockResolvedValue({
       ok: true,
       data: {
         message: "Hello World from Django Backend!",
@@ -23,7 +25,7 @@ describe("HomePage", () => {
       }
     });
 
-    const { default: HomePage } = await import("../page.js");
+    const { default: HomePage } = await import("../page");
     const markup = renderToStaticMarkup(await HomePage());
 
     expect(markup).toContain("Hello World from Django Backend!");
@@ -33,12 +35,12 @@ describe("HomePage", () => {
   });
 
   it("renders fallback state when request fails", async () => {
-    fetchHelloData.mockResolvedValue({
+    fetchHelloDataMock.mockResolvedValue({
       ok: false,
       error: "Network error when reaching backend at http://example.test/api/hello/."
     });
 
-    const { default: HomePage } = await import("../page.js");
+    const { default: HomePage } = await import("../page");
     const markup = renderToStaticMarkup(await HomePage());
 
     expect(markup).toContain("Unable to fetch backend data.");

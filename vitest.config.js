@@ -12,17 +12,18 @@ export default defineConfig({
     }
   },
   esbuild: {
-    include: /\.jsx?$/,
+    include: /\.[jt]sx?$/,
     jsx: "automatic"
   },
   test: {
     environment: "node",
     coverage: {
       all: false,
-      include: ["app/**/*.js", "src/**/*.js", "next.config.mjs"],
+      include: ["app/**/*.tsx", "src/**/*.ts", "next.config.mjs"],
       exclude: [
         "**/__tests__/**",
-        "**/*.test.js",
+        "**/*.test.ts",
+        "**/*.test.tsx",
         "**/.next/**",
         "**/coverage/**",
         "**/node_modules/**"
